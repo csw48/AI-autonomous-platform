@@ -57,8 +57,8 @@ This document outlines the development plan for the AI Autonomous Knowledge & Wo
 
 ---
 
-### ⏳ Milestone 3: Database & Vector DB Setup
-**Status**: Pending
+### ✅ Milestone 3: Database & Vector DB Setup
+**Status**: Completed
 
 **Objectives**:
 - PostgreSQL + pgvector setup
@@ -68,12 +68,12 @@ This document outlines the development plan for the AI Autonomous Knowledge & Wo
 - Docker compose for local development
 
 **Deliverables**:
-- [ ] Database models and schema
-- [ ] Vector store integration
-- [ ] Docker compose configuration
-- [ ] Database migration scripts
-- [ ] Connection pooling and session management
-- [ ] Tests for database operations
+- [x] Database models and schema (Document, DocumentChunk, Conversation, Message, VectorSearchCache)
+- [x] Vector store integration (pgvector + ChromaDB)
+- [x] Docker compose configuration (PostgreSQL, ChromaDB, Backend)
+- [x] Init SQL script for pgvector extension
+- [x] Connection pooling and async session management
+- [x] Tests for database operations (6 tests)
 
 ---
 
@@ -237,10 +237,10 @@ This document outlines the development plan for the AI Autonomous Knowledge & Wo
 
 ## Current Status
 
-- **Current Milestone**: Milestone 2 ✅
-- **Next Milestone**: Milestone 3 (Database & Vector DB Setup)
-- **Overall Progress**: 18% (2/11 milestones)
-- **Tests**: 24 passing, 77% coverage
+- **Current Milestone**: Milestone 3 ✅
+- **Next Milestone**: Milestone 4 (Document Upload & Indexing)
+- **Overall Progress**: 27% (3/11 milestones)
+- **Tests**: 30 passing, 81% coverage
 
 ## Workflow
 

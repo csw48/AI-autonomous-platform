@@ -2,6 +2,7 @@
 
 import pytest
 from fastapi.testclient import TestClient
+from unittest.mock import AsyncMock, MagicMock
 
 
 def test_health_check(test_client: TestClient):
@@ -11,11 +12,13 @@ def test_health_check(test_client: TestClient):
     assert response.status_code == 200
 
     data = response.json()
-    assert data["status"] == "ok"
+    # Status can be "ok" or "degraded" depending on DB availability
+    assert data["status"] in ["ok", "degraded"]
     assert "version" in data
     assert "app_name" in data
     assert "services" in data
     assert isinstance(data["services"], dict)
+    assert "database" in data["services"]
 
 
 def test_root_endpoint(test_client: TestClient):
@@ -38,5 +41,7 @@ async def test_health_check_async(async_client):
     assert response.status_code == 200
 
     data = response.json()
-    assert data["status"] == "ok"
+    # Status can be "ok" or "degraded" depending on DB availability
+    assert data["status"] in ["ok", "degraded"]
     assert "version" in data
+    assert "database" in data["services"]

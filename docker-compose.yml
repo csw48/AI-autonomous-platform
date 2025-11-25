@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector extension
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ai-platform-postgres
+    environment:
+      POSTGRES_DB: ai_platform
+      POSTGRES_USER: aiplatform
+      POSTGRES_PASSWORD: aiplatform_dev_password
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aiplatform -d ai_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai-platform-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ai-platform-backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://aiplatform:aiplatform_dev_password@postgres:5432/ai_platform
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      NOTION_API_KEY: ${NOTION_API_KEY}
+      NOTION_DATABASE_ID: ${NOTION_DATABASE_ID}
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - ai-platform-network
+
+  # ChromaDB (optional vector database)
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: ai-platform-chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      ANONYMIZED_TELEMETRY: "false"
+    networks:
+      - ai-platform-network
+
+volumes:
+  postgres_data:
+    driver: local
+  chroma_data:
+    driver: local
+
+networks:
+  ai-platform-network:
+    driver: bridge

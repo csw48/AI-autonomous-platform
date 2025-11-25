@@ -56,8 +56,7 @@ ai-platform/
 ### Prerequisites
 
 - Python 3.11+
-- Docker & docker-compose (optional)
-- PostgreSQL (or use Docker)
+- Docker & docker-compose
 - OpenAI API key
 
 ### Installation
@@ -87,13 +86,26 @@ pip install -r requirements.txt
 pytest
 ```
 
-5. Start the backend:
+5. Start with Docker Compose (recommended):
 ```bash
+docker-compose up -d
+```
+
+Or start backend only:
+```bash
+cd backend
 uvicorn app.main:app --reload
 ```
 
 The API will be available at `http://localhost:8000`
 API documentation at `http://localhost:8000/docs`
+
+### Docker Compose Services
+
+The platform includes:
+- **PostgreSQL** with pgvector extension (port 5432)
+- **Backend API** (port 8000)
+- **ChromaDB** vector database (port 8001)
 
 ## Development
 
@@ -160,4 +172,5 @@ Current version: 0.1.0
 🚧 **In Development**
 - ✅ Milestone 1: Repository initialization + backend skeleton
 - ✅ Milestone 2: LLM integration (simple chat)
-- 🔄 Milestone 3: Database + vector DB setup (next)
+- ✅ Milestone 3: Database + vector DB setup
+- 🔄 Milestone 4: Document upload & indexing (next)

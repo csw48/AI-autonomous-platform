@@ -168,10 +168,22 @@ docker run -p 8000:8000 --env-file ../.env ai-platform-backend
 
 - [x] Milestone 1: Repository initialization + backend skeleton
 - [x] Milestone 2: LLM integration (simple chat)
+- [x] Milestone 3: Database + vector DB setup
+
+## Database Models
+
+The platform includes the following database models:
+
+- **Document**: Stores uploaded documents with metadata
+- **DocumentChunk**: Text chunks with embeddings for vector search
+- **Conversation**: Chat conversation sessions
+- **Message**: Individual messages in conversations
+- **VectorSearchCache**: Cache for vector search results
+
+All models use async SQLAlchemy with PostgreSQL + pgvector extension.
 
 ## Next Steps
 
-- [ ] Database setup (Milestone 3)
 - [ ] Document upload & indexing (Milestone 4)
 - [ ] RAG implementation (Milestone 5)
 - [ ] AI Agent system (Milestone 6)
