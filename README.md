@@ -119,12 +119,15 @@ docker run -p 8000:8000 ai-platform-backend
 
 ## API Endpoints
 
+### Available Now
 - `GET /` - Root endpoint
 - `GET /api/v1/health` - Health check
-- `POST /api/v1/chat` - Simple chat (coming soon)
-- `POST /api/v1/chat/rag` - RAG-enhanced chat (coming soon)
-- `POST /api/v1/documents/upload` - Upload documents (coming soon)
-- `POST /api/v1/agents/execute` - Execute agent tasks (coming soon)
+- `POST /api/v1/chat` - Simple chat with LLM
+
+### Coming Soon
+- `POST /api/v1/chat/rag` - RAG-enhanced chat
+- `POST /api/v1/documents/upload` - Upload documents
+- `POST /api/v1/agents/execute` - Execute agent tasks
 
 ## Configuration
 
@@ -154,4 +157,7 @@ Current version: 0.1.0
 
 ## Status
 
-🚧 **In Development** - Milestone 1 completed
+🚧 **In Development**
+- ✅ Milestone 1: Repository initialization + backend skeleton
+- ✅ Milestone 2: LLM integration (simple chat)
+- 🔄 Milestone 3: Database + vector DB setup (next)

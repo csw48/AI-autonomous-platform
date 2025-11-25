@@ -110,6 +110,25 @@ Response:
 }
 ```
 
+### Chat (LLM)
+```http
+POST /api/v1/chat
+
+Request:
+{
+  "message": "Hello, how are you?",
+  "system_prompt": "You are a helpful assistant",  // optional
+  "temperature": 0.7,  // optional, default 0.7
+  "max_tokens": 1000   // optional
+}
+
+Response:
+{
+  "answer": "I'm doing well, thank you for asking!",
+  "tokens_used": 12
+}
+```
+
 ## Notion Integration
 
 The backend includes Notion API integration for task tracking:
@@ -145,10 +164,35 @@ docker build -t ai-platform-backend .
 docker run -p 8000:8000 --env-file ../.env ai-platform-backend
 ```
 
+## Completed Milestones
+
+- [x] Milestone 1: Repository initialization + backend skeleton
+- [x] Milestone 2: LLM integration (simple chat)
+
 ## Next Steps
 
-- [ ] LLM integration (Milestone 2)
 - [ ] Database setup (Milestone 3)
 - [ ] Document upload & indexing (Milestone 4)
 - [ ] RAG implementation (Milestone 5)
 - [ ] AI Agent system (Milestone 6)
+
+## LLM Integration
+
+The backend supports multiple LLM providers through an abstract interface:
+
+```python
+from app.core.llm import llm_manager
+
+# Generate text
+response = await llm_manager.generate(
+    prompt="What is AI?",
+    system_prompt="You are a helpful assistant",
+    temperature=0.7
+)
+
+# Count tokens
+tokens = llm_manager.count_tokens("Some text")
+```
+
+Currently supported providers:
+- OpenAI (GPT-4, GPT-3.5-turbo)

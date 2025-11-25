@@ -9,7 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.notion import notion
-from app.api.v1 import health
+from app.core.llm import llm_manager
+from app.api.v1 import health, chat
 
 # Configure logging
 logging.basicConfig(
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     # Startup
     logger.info(f"Starting {settings.app_name} v{settings.app_version}")
     logger.info(f"Notion integration: {'enabled' if notion.is_enabled() else 'disabled'}")
+    logger.info(f"LLM provider: {'enabled' if llm_manager.is_available() else 'disabled'}")
     yield
     # Shutdown
     logger.info("Shutting down application")
@@ -49,6 +51,7 @@ app.add_middleware(
 
 # Register routers
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
+app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
 
 
 @app.get("/")
