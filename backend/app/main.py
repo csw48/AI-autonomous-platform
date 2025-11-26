@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.notion import notion
 from app.core.llm import llm_manager
-from app.api.v1 import health, chat
+from app.api.v1 import health, chat, documents
 
 # Configure logging
 logging.basicConfig(
@@ -52,6 +52,7 @@ app.add_middleware(
 # Register routers
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
+app.include_router(documents.router, prefix="/api/v1", tags=["documents"])
 
 
 @app.get("/")

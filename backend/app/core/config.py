@@ -1,6 +1,7 @@
 """Application configuration using pydantic-settings"""
 
-from typing import List
+from typing import List, Union
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,7 +32,7 @@ class Settings(BaseSettings):
 
     # Security
     secret_key: str = "change-me-in-production"
-    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    cors_origins: Union[List[str], str] = ["http://localhost:3000", "http://localhost:8000"]
 
     # Voice
     whisper_model: str = "base"
@@ -41,6 +42,14 @@ class Settings(BaseSettings):
     # Rate Limiting
     rate_limit_requests: int = 100
     rate_limit_period: int = 60
+
+    @field_validator('cors_origins', mode='before')
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse CORS origins from comma-separated string or list"""
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(',') if origin.strip()]
+        return v
 
     model_config = SettingsConfigDict(
         env_file=".env",
