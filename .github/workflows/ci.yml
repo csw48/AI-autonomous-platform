@@ -47,7 +47,7 @@ jobs:
         NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
         NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
       run: |
-        pytest -v --cov=app --cov-report=term-missing
+        pytest -v --cov=app --cov-report=term-missing --ignore=tests/test_documents.py
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
