@@ -59,6 +59,21 @@ services:
     networks:
       - ai-platform-network
 
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ai-platform-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - ai-platform-network
+
 volumes:
   postgres_data:
     driver: local

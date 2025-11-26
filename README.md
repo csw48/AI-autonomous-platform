@@ -106,6 +106,7 @@ The platform includes:
 - **PostgreSQL** with pgvector extension (port 5432)
 - **Backend API** (port 8000)
 - **ChromaDB** vector database (port 8001)
+- **Frontend** Next.js web interface (port 3000)
 
 ## Development
 
@@ -178,4 +179,5 @@ Current version: 0.1.0
 - ✅ Milestone 2: LLM integration (simple chat)
 - ✅ Milestone 3: Database + vector DB setup
 - ✅ Milestone 4: Document upload & indexing
+- ✅ Frontend: Web UI with chat & document management
 - 🔄 Milestone 5: RAG search (next)
