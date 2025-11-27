@@ -73,21 +73,24 @@ async def process_document_background(
     file_content: bytes,
     content_type: str,
     language: Optional[str],
-    chunk_strategy: str,
-    db: AsyncSession
+    chunk_strategy: str
 ):
     """Background task to process and index document"""
+    from app.db.session import async_session_maker
+
     indexing_service = IndexingService()
 
     try:
-        await indexing_service.process_and_index_document(
-            db=db,
-            document_id=document_id,
-            file_content=file_content,
-            content_type=content_type,
-            language=language,
-            chunk_strategy=chunk_strategy
-        )
+        # Create a new database session for background task
+        async with async_session_maker() as db:
+            await indexing_service.process_and_index_document(
+                db=db,
+                document_id=document_id,
+                file_content=file_content,
+                content_type=content_type,
+                language=language,
+                chunk_strategy=chunk_strategy
+            )
         logger.info(f"Background processing completed for document {document_id}")
     except Exception as e:
         logger.error(f"Background processing failed for document {document_id}: {e}")
@@ -182,8 +185,7 @@ async def upload_document(
             file_content=file_content,
             content_type=file.content_type,
             language=language,
-            chunk_strategy=chunk_strategy,
-            db=db
+            chunk_strategy=chunk_strategy
         )
 
         return DocumentUploadResponse(

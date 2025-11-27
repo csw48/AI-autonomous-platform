@@ -2,7 +2,17 @@
 import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine
 from app.db.base import Base
-from app.db.models import Document, DocumentChunk
+from app.db.models import (
+    Document,
+    DocumentChunk,
+    Conversation,
+    Message,
+    VectorSearchCache,
+    Workflow,
+    WorkflowExecution,
+    WorkflowStepExecution,
+    WorkflowTemplate
+)
 from app.core.config import settings
 
 async def init_db():
