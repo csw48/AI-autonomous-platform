@@ -6,7 +6,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from pydantic import BaseModel, Field
 
 from app.db.session import get_db
@@ -291,21 +291,30 @@ async def list_documents(
         documents = result.scalars().all()
 
         # Get total count
-        count_result = await db.execute(select(Document))
-        total = len(count_result.scalars().all())
+        count_query = select(func.count()).select_from(Document)
+        if status:
+            count_query = count_query.where(Document.status == status)
+        count_result = await db.execute(count_query)
+        total = count_result.scalar()
 
-        document_responses = [
-            DocumentStatusResponse(
-                document_id=doc.id,
-                filename=doc.filename,
-                status=doc.status,
-                error_message=doc.error_message,
-                chunks_count=len(doc.chunks),
-                created_at=doc.created_at,
-                updated_at=doc.updated_at
+        # Get chunk counts for each document
+        document_responses = []
+        for doc in documents:
+            chunk_count_query = select(func.count()).select_from(DocumentChunk).where(DocumentChunk.document_id == doc.id)
+            chunk_count_result = await db.execute(chunk_count_query)
+            chunks_count = chunk_count_result.scalar()
+
+            document_responses.append(
+                DocumentStatusResponse(
+                    document_id=doc.id,
+                    filename=doc.filename,
+                    status=doc.status,
+                    error_message=doc.error_message,
+                    chunks_count=chunks_count,
+                    created_at=doc.created_at,
+                    updated_at=doc.updated_at
+                )
             )
-            for doc in documents
-        ]
 
         return DocumentListResponse(
             documents=document_responses,
