@@ -18,6 +18,7 @@ chromadb==0.4.22
 
 # LLM & AI
 openai==1.10.0
+google-generativeai==0.3.2
 tiktoken==0.5.2
 sentence-transformers==2.3.1
 
@@ -30,6 +31,12 @@ pytesseract==0.3.10
 
 # Notion Integration
 notion-client==2.2.1
+
+# Voice Processing
+openai-whisper==20231117
+pydub==0.25.1
+soundfile==0.12.1
+numpy==1.26.3
 
 # Testing
 pytest==7.4.4
