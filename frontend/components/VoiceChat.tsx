@@ -54,8 +54,10 @@ export default function VoiceChat({ apiUrl = 'http://localhost:8000' }: VoiceCha
       };
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Optional: Speak the response
-      await speakResponse(data.response);
+      // Optional: Speak the response (don't block if it fails)
+      speakResponse(data.response).catch(err => {
+        console.error('TTS error (non-blocking):', err);
+      });
     } catch (error) {
       console.error('Error in voice chat:', error);
       const errorMessage: Message = {
