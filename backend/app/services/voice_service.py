@@ -6,7 +6,6 @@ import os
 from pathlib import Path
 from typing import Optional, BinaryIO
 import whisper
-from openai import AsyncOpenAI
 import soundfile as sf
 import numpy as np
 
@@ -80,56 +79,44 @@ class SpeechToTextService:
 
 
 class TextToSpeechService:
-    """Text-to-Speech service using OpenAI TTS"""
+    """Text-to-Speech service using gTTS (free Google TTS)"""
 
     def __init__(self):
         self.provider = settings.tts_provider
         self.voice = settings.tts_voice
-
-        if self.provider == "openai":
-            if not settings.openai_api_key:
-                logger.warning("OpenAI API key not configured for TTS")
-                self.client = None
-            else:
-                self.client = AsyncOpenAI(api_key=settings.openai_api_key)
-                logger.info(f"Initialized OpenAI TTS with voice: {self.voice}")
-        else:
-            logger.warning(f"Unsupported TTS provider: {self.provider}")
-            self.client = None
+        logger.info(f"Initialized gTTS (Google Text-to-Speech)")
 
     async def synthesize(
         self,
         text: str,
         voice: Optional[str] = None,
-        model: str = "tts-1"
+        model: str = "tts-1"  # Kept for API compatibility
     ) -> bytes:
         """
-        Synthesize speech from text
+        Synthesize speech from text using gTTS
 
         Args:
             text: Text to convert to speech
-            voice: Voice to use (default from settings)
-            model: TTS model (tts-1 or tts-1-hd)
+            voice: Ignored (gTTS uses default voice)
+            model: Ignored, kept for API compatibility
 
         Returns:
             Audio data as bytes (MP3 format)
         """
-        if not self.client:
-            raise RuntimeError("TTS client not initialized")
-
-        voice = voice or self.voice
-
         try:
-            logger.info(f"Synthesizing speech: {len(text)} chars with voice {voice}")
+            from gtts import gTTS
+            import io
 
-            response = await self.client.audio.speech.create(
-                model=model,
-                voice=voice,
-                input=text
-            )
+            logger.info(f"Synthesizing speech: {len(text)} chars using gTTS")
 
-            # Get audio content
-            audio_data = response.content
+            # Generate speech using gTTS
+            tts = gTTS(text=text, lang='en', slow=False)
+
+            # Save to BytesIO buffer
+            audio_buffer = io.BytesIO()
+            tts.write_to_fp(audio_buffer)
+            audio_buffer.seek(0)
+            audio_data = audio_buffer.read()
 
             logger.info(f"Speech synthesis completed: {len(audio_data)} bytes")
             return audio_data
@@ -140,7 +127,8 @@ class TextToSpeechService:
 
     def is_available(self) -> bool:
         """Check if TTS service is available"""
-        return self.client is not None
+        # gTTS is always available, no API key needed
+        return True
 
 
 class VoiceService:
