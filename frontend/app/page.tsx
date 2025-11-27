@@ -4,9 +4,11 @@ import { useState } from "react";
 import Chat from "@/components/Chat";
 import DocumentUpload from "@/components/DocumentUpload";
 import DocumentList from "@/components/DocumentList";
+import VoiceChat from "@/components/VoiceChat";
+import TextToSpeech from "@/components/TextToSpeech";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<"chat" | "documents">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "documents" | "voice">("chat");
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -46,6 +48,16 @@ export default function Home() {
             >
               Documents
             </button>
+            <button
+              onClick={() => setActiveTab("voice")}
+              className={`${
+                activeTab === "voice"
+                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400"
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              Voice
+            </button>
           </nav>
         </div>
       </div>
@@ -57,6 +69,19 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <DocumentUpload />
             <DocumentList />
+          </div>
+        )}
+        {activeTab === "voice" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg h-[600px]">
+              <VoiceChat />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Text to Speech
+              </h3>
+              <TextToSpeech />
+            </div>
           </div>
         )}
       </main>
