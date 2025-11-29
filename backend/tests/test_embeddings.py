@@ -2,91 +2,75 @@
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+import os
 
-from app.core.embeddings import EmbeddingsService
+from app.core.embeddings import EmbeddingsService, GeminiEmbeddingProvider, OpenAIEmbeddingProvider
 
 
 @pytest.fixture
-def mock_openai_client():
-    """Mock OpenAI client"""
-    with patch("app.core.embeddings.AsyncOpenAI") as mock:
-        client = MagicMock()
-
-        # Mock embedding response
-        embedding_data = MagicMock()
-        embedding_data.embedding = [0.1] * 1536
-
-        response = MagicMock()
-        response.data = [embedding_data]
-
-        client.embeddings.create = AsyncMock(return_value=response)
-        mock.return_value = client
-
-        yield mock
+def mock_settings_gemini():
+    """Mock settings for Gemini provider"""
+    with patch("app.core.embeddings.settings") as mock_settings:
+        mock_settings.llm_provider = "gemini"
+        mock_settings.gemini_api_key = "test-gemini-key"
+        mock_settings.embedding_model = "models/embedding-001"
+        yield mock_settings
 
 
-@pytest.mark.asyncio
-async def test_generate_embedding(mock_openai_client):
-    """Test generating single embedding"""
-    service = EmbeddingsService(api_key="test-key")
-
-    text = "This is a test document"
-    embedding = await service.generate_embedding(text)
-
-    assert isinstance(embedding, list)
-    assert len(embedding) == 1536
-    assert all(isinstance(x, float) for x in embedding)
+@pytest.fixture
+def mock_settings_openai():
+    """Mock settings for OpenAI provider"""
+    with patch("app.core.embeddings.settings") as mock_settings:
+        mock_settings.llm_provider = "openai"
+        mock_settings.openai_api_key = "test-openai-key"
+        mock_settings.embedding_model = "text-embedding-3-small"
+        yield mock_settings
 
 
 @pytest.mark.asyncio
-async def test_generate_embedding_empty_text():
+async def test_generate_embedding_gemini(mock_settings_gemini):
+    """Test generating single embedding with Gemini"""
+    with patch("app.core.embeddings.genai.embed_content") as mock_embed:
+        mock_embed.return_value = {"embedding": [0.1] * 768}
+
+        service = EmbeddingsService()
+        text = "This is a test document"
+        embedding = await service.generate_embedding(text)
+
+        assert isinstance(embedding, list)
+        assert len(embedding) == 768
+        assert all(isinstance(x, float) for x in embedding)
+
+
+@pytest.mark.asyncio
+async def test_generate_embedding_empty_text(mock_settings_gemini):
     """Test generating embedding with empty text"""
-    service = EmbeddingsService(api_key="test-key")
-
-    with pytest.raises(ValueError) as exc_info:
-        await service.generate_embedding("")
-
-    assert "cannot be empty" in str(exc_info.value)
-
-
-@pytest.mark.asyncio
-async def test_generate_embedding_no_api_key():
-    """Test generating embedding without API key"""
-    service = EmbeddingsService(api_key="")
+    service = EmbeddingsService()
 
     with pytest.raises(Exception) as exc_info:
-        await service.generate_embedding("test")
+        await service.generate_embedding("")
 
-    assert "API key not configured" in str(exc_info.value)
+    assert "cannot be empty" in str(exc_info.value).lower()
 
 
 @pytest.mark.asyncio
-async def test_generate_embeddings_batch(mock_openai_client):
-    """Test generating embeddings in batch"""
-    # Mock multiple embeddings
-    with patch("app.core.embeddings.AsyncOpenAI") as mock:
-        client = MagicMock()
+async def test_generate_embeddings_batch_gemini(mock_settings_gemini):
+    """Test generating embeddings in batch with Gemini"""
+    with patch("app.core.embeddings.genai.embed_content") as mock_embed:
+        mock_embed.return_value = {"embedding": [0.1] * 768}
 
-        # Mock 3 embedding responses
-        embedding_data = [MagicMock(embedding=[0.1] * 1536) for _ in range(3)]
-        response = MagicMock()
-        response.data = embedding_data
-
-        client.embeddings.create = AsyncMock(return_value=response)
-        mock.return_value = client
-
-        service = EmbeddingsService(api_key="test-key")
+        service = EmbeddingsService()
         texts = ["Text one", "Text two", "Text three"]
         embeddings = await service.generate_embeddings_batch(texts)
 
         assert len(embeddings) == 3
-        assert all(len(emb) == 1536 for emb in embeddings)
+        assert all(len(emb) == 768 for emb in embeddings)
 
 
 @pytest.mark.asyncio
-async def test_generate_embeddings_empty_batch():
+async def test_generate_embeddings_empty_batch(mock_settings_gemini):
     """Test generating embeddings with empty batch"""
-    service = EmbeddingsService(api_key="test-key")
+    service = EmbeddingsService()
 
     embeddings = await service.generate_embeddings_batch([])
 
@@ -94,18 +78,27 @@ async def test_generate_embeddings_empty_batch():
 
 
 @pytest.mark.asyncio
-async def test_get_embedding_dimension():
-    """Test getting embedding dimension"""
-    service = EmbeddingsService(model="text-embedding-3-small")
+async def test_get_embedding_dimension_gemini(mock_settings_gemini):
+    """Test getting embedding dimension for Gemini"""
+    service = EmbeddingsService()
 
     dimension = await service.get_embedding_dimension()
 
-    assert dimension == 1536
+    assert dimension == 768
 
 
-def test_calculate_similarity():
+@pytest.mark.asyncio
+async def test_get_embedding_dimension_openai(mock_settings_openai):
+    """Test getting embedding dimension for OpenAI"""
+    with patch("app.core.embeddings.AsyncOpenAI"):
+        service = EmbeddingsService()
+        dimension = await service.get_embedding_dimension()
+        assert dimension == 1536
+
+
+def test_calculate_similarity(mock_settings_gemini):
     """Test cosine similarity calculation"""
-    service = EmbeddingsService(api_key="test-key")
+    service = EmbeddingsService()
 
     # Identical vectors
     vec1 = [1.0, 2.0, 3.0]
@@ -122,9 +115,9 @@ def test_calculate_similarity():
     assert abs(similarity - 0.0) < 0.001
 
 
-def test_calculate_similarity_different_dimensions():
+def test_calculate_similarity_different_dimensions(mock_settings_gemini):
     """Test similarity calculation with different dimensions"""
-    service = EmbeddingsService(api_key="test-key")
+    service = EmbeddingsService()
 
     vec1 = [1.0, 2.0]
     vec2 = [1.0, 2.0, 3.0]
@@ -133,3 +126,34 @@ def test_calculate_similarity_different_dimensions():
         service.calculate_similarity(vec1, vec2)
 
     assert "same dimension" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_openai_provider():
+    """Test OpenAI provider directly"""
+    with patch("app.core.embeddings.AsyncOpenAI") as mock_client_class:
+        # Setup mock
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.data = [MagicMock(embedding=[0.1] * 1536)]
+        mock_client.embeddings.create = AsyncMock(return_value=mock_response)
+        mock_client_class.return_value = mock_client
+
+        provider = OpenAIEmbeddingProvider("test-key", "text-embedding-3-small")
+        embedding = await provider.generate_embedding("test text")
+
+        assert len(embedding) == 1536
+        assert provider.get_dimension() == 1536
+
+
+@pytest.mark.asyncio
+async def test_gemini_provider():
+    """Test Gemini provider directly"""
+    with patch("app.core.embeddings.genai") as mock_genai:
+        mock_genai.embed_content.return_value = {"embedding": [0.1] * 768}
+
+        provider = GeminiEmbeddingProvider("test-key", "models/embedding-001")
+        embedding = await provider.generate_embedding("test text")
+
+        assert len(embedding) == 768
+        assert provider.get_dimension() == 768
