@@ -34,7 +34,7 @@ class IndexingService:
         """
         self.text_extractor = TextExtractionService()
         self.chunker = ChunkingService(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-        self.embeddings_service = EmbeddingsService(model=embedding_model)
+        self.embeddings_service = EmbeddingsService()
 
     async def process_and_index_document(
         self,
@@ -120,15 +120,22 @@ class IndexingService:
             # Step 3: Generate embeddings
             try:
                 chunk_texts = [chunk.content for chunk in chunks]
+                logger.info(f"Generating embeddings for {len(chunk_texts)} chunks...")
+
                 embeddings = await self.embeddings_service.generate_embeddings_batch(chunk_texts)
 
-                logger.info(f"Generated {len(embeddings)} embeddings")
+                logger.info(f"Successfully generated {len(embeddings)} embeddings")
+
+                if len(embeddings) != len(chunks):
+                    logger.warning(f"Embedding count mismatch: {len(embeddings)} vs {len(chunks)} chunks")
 
             except Exception as e:
+                error_msg = f"Embedding generation failed: {str(e)}"
+                logger.error(error_msg)
                 document.status = "failed"
-                document.error_message = f"Embedding generation failed: {str(e)}"
+                document.error_message = error_msg
                 await db.commit()
-                raise
+                raise Exception(error_msg)
 
             # Step 4: Save chunks to database
             try:

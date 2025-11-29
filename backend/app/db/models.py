@@ -48,8 +48,9 @@ class DocumentChunk(Base):
     content = Column(Text, nullable=False)
     chunk_index = Column(Integer, nullable=False)
 
-    # Embedding (1536 dimensions for OpenAI text-embedding-3-small)
-    embedding = Column(Vector(1536), nullable=True)
+    # Embedding (768 dimensions for Gemini embedding-001)
+    # Change to 1536 for OpenAI text-embedding-3-small if needed
+    embedding = Column(Vector(768), nullable=True)
 
     # Metadata
     chunk_metadata = Column(JSON, nullable=True)

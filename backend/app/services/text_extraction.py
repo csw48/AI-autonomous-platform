@@ -2,6 +2,8 @@
 
 import io
 import logging
+import os
+import subprocess
 from typing import Optional
 from pathlib import Path
 
@@ -11,6 +13,51 @@ from PIL import Image
 import pytesseract
 
 logger = logging.getLogger(__name__)
+
+
+def _configure_tesseract():
+    """Auto-configure Tesseract tessdata path if not already set"""
+    if os.environ.get('TESSDATA_PREFIX'):
+        logger.info(f"Tesseract TESSDATA_PREFIX already set: {os.environ['TESSDATA_PREFIX']}")
+        return
+
+    # Try to find tessdata directory (order matters - check version 5 first)
+    possible_paths = [
+        '/usr/share/tesseract-ocr/5/tessdata',
+        '/usr/share/tesseract-ocr/4.00/tessdata',
+        '/usr/share/tesseract-ocr/4/tessdata',
+        '/usr/share/tessdata',
+        '/usr/local/share/tessdata',
+    ]
+
+    for path in possible_paths:
+        if os.path.exists(path) and os.path.isdir(path):
+            # Check if eng.traineddata exists in this directory
+            eng_file = os.path.join(path, 'eng.traineddata')
+            if os.path.exists(eng_file):
+                logger.info(f"Found Tesseract data directory: {path}")
+                os.environ['TESSDATA_PREFIX'] = path
+                return
+
+    # Fallback: try to set it anyway if directory exists
+    for path in possible_paths:
+        if os.path.exists(path) and os.path.isdir(path):
+            logger.warning(f"Setting TESSDATA_PREFIX to {path} (no eng.traineddata found)")
+            os.environ['TESSDATA_PREFIX'] = path
+            return
+
+    logger.error("Could not find Tesseract data directory!")
+
+    # Try to get from tesseract command
+    try:
+        result = subprocess.run(['tesseract', '--version'], capture_output=True, text=True)
+        logger.info(f"Tesseract version: {result.stderr.split(chr(10))[0] if result.stderr else 'unknown'}")
+    except Exception as e:
+        logger.warning(f"Failed to get tesseract version: {e}")
+
+
+# Configure Tesseract on module import
+_configure_tesseract()
 
 
 class TextExtractionService:
