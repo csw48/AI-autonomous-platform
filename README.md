@@ -20,8 +20,9 @@ Professional end-to-end AI system combining RAG (Retrieval-Augmented Generation)
 - FastAPI
 - PostgreSQL + pgvector
 - SQLAlchemy
-- OpenAI API (LLM & Embeddings)
+- Gemini AI (LLM & Embeddings) / OpenAI API
 - ChromaDB (optional)
+- Tesseract OCR for image text extraction
 
 ### Frontend
 - Next.js
